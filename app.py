@@ -3,15 +3,14 @@ import cloudinary
 import cloudinary.uploader
 import uuid
 
-# 填入你的 Cloudinary 鑰匙
+# 從 Streamlit 的「保險箱」讀取密鑰，而不是直接寫死
 cloudinary.config( 
-  cloud_name = "dontrm57o", 
-  api_key = "127411183399797", 
-  api_secret = "3zitwMsjNd5ojuRgqPS3ji8Ufzc",
+  cloud_name = st.secrets["CLOUDINARY_NAME"], 
+  api_key = st.secrets["CLOUDINARY_API_KEY"], 
+  api_secret = st.secrets["CLOUDINARY_API_SECRET"],
   secure = True
 )
-
-st.title("📄 我的 PDF 分享工具")
+st.title("📄 柏宇的 PDF 分享工具")
 st.write("上傳 PDF 後，即可獲得分享連結。")
 
 uploaded_file = st.file_uploader("請選擇 PDF 檔案", type=["pdf"])

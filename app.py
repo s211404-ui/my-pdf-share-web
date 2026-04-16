@@ -10,7 +10,7 @@ cloudinary.config(
   api_secret = st.secrets["CLOUDINARY_API_SECRET"],
   secure = True
 )
-st.title("📄 柏宇的 PDF 分享工具")
+st.title("📄 柏宇的 PDF 轉換器")
 st.write("上傳 PDF 後，即可獲得分享連結。")
 
 uploaded_file = st.file_uploader("請選擇 PDF 檔案", type=["pdf"])
@@ -28,7 +28,7 @@ if uploaded_file is not None:
                 # 取得連結
                 file_url = upload_result.get("secure_url")
                 
-                st.success("成功！")
+                st.success("成功上傳！謝謝使用!")
                 st.code(file_url)
                 st.markdown(f"[🔗 按此開啟 PDF]({file_url})")
             except Exception as e:

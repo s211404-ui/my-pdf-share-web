@@ -3,14 +3,18 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 import uuid
+import google.generativeai as genai
+from PyPDF2 import PdfReader
+import io
+import requests
 
 # 1. 網頁基礎設定
-st.set_page_config(page_title="柏宇的專屬 PDF 空間", page_icon="🔒")
+st.set_page_config(page_title="柏宇的 AI PDF 空間", page_icon="🤖")
 
 # 2. 隱藏介面元素
 st.markdown("<style>header {visibility: hidden;} #MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 
-# 3. Cloudinary 配置
+# 3. 配置區 (Cloudinary + Gemini)
 cloudinary.config( 
   cloud_name = st.secrets["CLOUDINARY_NAME"], 
   api_key = st.secrets["CLOUDINARY_API_KEY"], 
@@ -18,51 +22,40 @@ cloudinary.config(
   secure = True
 )
 
-# --- 標題與視覺引導區 ---
-st.markdown("<h1 style='text-align: center;'>📄 柏宇的 PDF 雲端學習空間</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: gray;'>快速轉換、永久儲存、AI摘要筆記</p>", unsafe_allow_html=True)
+# 初始化 Gemini AI
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+ai_model = genai.GenerativeModel('gemini-1.5-flash')
 
+# --- 標題與流程說明 ---
+st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)
 st.markdown("### 🚀 三步驟快速上手")
 col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.info("#### 1. 設定密碼\n輸入您的專屬存取碼，確保檔案隱私。")
-    
-with col2:
-    st.info("#### 2. 上傳 PDF\n選取檔案並點擊上傳，系統自動雲端儲存。")
-    
-with col3:
-    st.info("#### 3. AI 輔助\n點擊分析按鈕，獲取摘要與讀書筆記。")
-
+with col1: st.info("#### 1. 設定密碼\n確保檔案隱私。")
+with col2: st.info("#### 2. 上傳 PDF\n自動雲端儲存。")
+with col3: st.info("#### 3. AI 筆記\n一鍵產生重點摘要。")
 st.divider()
 
-# --- 關鍵：用戶身份辨識 (修正順序：先定義 user_id) ---
-st.write("### 🔑 進入個人資料庫")
-user_id = st.text_input("請輸入您的專屬存取碼（建議使用學號或自訂代碼）", type="password")
-
+# --- 用戶身份辨識 ---
+user_id = st.text_input("🔑 請輸入您的專屬存取碼", type="password")
 if not user_id:
     st.warning("請先輸入存取碼以開啟功能。")
-    st.stop() # 沒輸入前，後面的內容都不會跑，避免錯誤
+    st.stop()
 
-# 執行到這代表 user_id 已定義
-st.success(f"✅ 已成功登入空間：{user_id}")
-
-# 根據 user_id 決定雲端路徑
 user_path = f"user_data/{user_id}"
 
 # --- 第一部分：上傳區 ---
-st.subheader(f"📤 上傳檔案")
+st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
 if uploaded_file:
     if st.button("🚀 開始上傳"):
-        with st.spinner("傳輸中..."):
+        with st.spinner("上傳中..."):
             try:
                 cloudinary.uploader.upload(
                     uploaded_file, 
                     resource_type = "raw", 
                     folder = user_path,
-                    public_id = f"{uploaded_file.name}"
+                    public_id = f"{uuid.uuid4()}_{uploaded_file.name}"
                 )
                 st.success("上傳成功！")
                 st.rerun() 
@@ -71,20 +64,25 @@ if uploaded_file:
 
 st.divider()
 
-# --- 第二部分：個人檔案清單 ---
-st.subheader("📂 我上傳的私人檔案櫃")
+# --- 第二部分：個人檔案清單與 AI 功能 ---
+st.subheader("📂 我的私有檔案清單")
+
+def get_pdf_text(url):
+    """從 URL 下載 PDF 並讀取文字"""
+    response = requests.get(url)
+    f = io.BytesIO(response.content)
+    reader = PdfReader(f)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
 
 try:
-    resources = cloudinary.api.resources(
-        type = "upload", 
-        resource_type = "raw", 
-        prefix = f"{user_path}/"
-    )
-    
+    resources = cloudinary.api.resources(type="upload", resource_type="raw", prefix=f"{user_path}/")
     file_list = resources.get("resources", [])
     
     if not file_list:
-        st.write("您的檔案櫃目前沒有檔案。")
+        st.write("目前尚無檔案。")
     else:
         for file in file_list:
             display_name = file['public_id'].split('/')[-1]
@@ -92,7 +90,24 @@ try:
             
             with st.expander(f"📄 {display_name}"):
                 st.code(file_url)
-                st.markdown(f"[🔗 開啟 PDF]({file_url})")
+                
+                # AI 分析按鈕
+                if st.button(f"🤖 產生 AI 筆記", key=file['public_id']):
+                    with st.spinner("AI 正在深度閱讀中..."):
+                        try:
+                            # 1. 提取文字
+                            pdf_text = get_pdf_text(file_url)
+                            # 2. 餵給 AI (限制長度避免爆掉)
+                            prompt = f"你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行分析，並用繁體中文提供：\n1. 核心摘要 (300字內)\n2. 5 個關鍵知識點\n3. 適合學生的複習建議\n\n內容如下：\n{pdf_text[:10000]}"
+                            response = ai_model.generate_content(prompt)
+                            
+                            st.markdown("---")
+                            st.markdown("### 📝 AI 學習筆記內容")
+                            st.write(response.text)
+                        except Exception as ai_err:
+                            st.error(f"AI 分析失敗: {ai_err}")
+                
+                st.markdown(f"[🔗 直接開啟檔案]({file_url})")
                 
 except Exception as e:
-    st.error("暫時無法讀取。請確認存取碼是否正確或 Cloudinary 權限。")
+    st.error(f"讀取失敗：{e}")

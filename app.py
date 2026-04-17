@@ -117,18 +117,28 @@ def get_pdf_text(url):
     return text
 
 try:
+    # 1. 向 Cloudinary 抓取清單
     resources = cloudinary.api.resources(type="upload", resource_type="raw", prefix=f"{user_path}/")
-    file_list = resources.get("resources", [])
+    
+    # 2. 先抓出所有檔案
+    all_files = resources.get("resources", [])
+    
+    # 3. ✨ 關鍵修改：只保留前 20 個檔案
+    file_list = all_files[:20] 
     
     if not file_list:
         st.write("目前尚無檔案。")
     else:
+        # 這裡可以加一行小字，讓介面更專業
+        st.caption(f"📊 目前顯示最新的 {len(file_list)} 個項目 (上限 20 個)")
+
         for file in file_list:
             display_name = file['public_id'].split('/')[-1]
             file_url = file['secure_url']
             
             with st.expander(f"📄 {display_name}"):
                 st.code(file_url)
+                # ... 這裡接你後面的 AI 按鈕和刪除按鈕 ...
                 
                 # 1. AI 分析按鈕
                 if st.button(f"🤖 產生 AI 筆記", key=f"ai_{file['public_id']}"):

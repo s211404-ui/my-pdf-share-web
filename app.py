@@ -24,22 +24,22 @@ cloudinary.config(
 
 # 初始化 Gemini AI
 # --- 修正後的 AI 初始化 ---
+# --- 修正後的 AI 初始化 (完全取代原本那兩三行) ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# 自動尋找可用的模型名稱 (預防 404 錯誤)
 try:
+    # 這是最保險的做法：直接抓取清單中第一個支援生成內容的模型
     available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    # 優先順序：1.5-flash -> 1.5-pro -> gemini-pro
-    if 'models/gemini-1.5-flash' in available_models:
-        model_name = 'gemini-1.5-flash'
-    elif 'models/gemini-1.5-pro' in available_models:
-        model_name = 'gemini-1.5-pro'
-    else:
-        model_name = 'gemini-pro'
     
-    ai_model = genai.GenerativeModel(model_name)
+    if available_models:
+        # 優先使用 flash 版 (比較快)，如果沒有就用清單第一個
+        model_to_use = next((m for m in available_models if 'flash' in m), available_models[0])
+        ai_model = genai.GenerativeModel(model_to_use)
+        # st.success(f"成功連結 AI 模型：{model_to_use}") # 測試時可以取消註解確認
+    else:
+        st.error("您的 API Key 權限尚未開啟模型存取，請檢查 Google AI Studio。")
 except Exception as e:
-    st.error(f"模型初始化失敗: {e}")
+    st.error(f"AI 初始化失敗: {e}")
 
 # --- 標題與流程說明 ---
 st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)

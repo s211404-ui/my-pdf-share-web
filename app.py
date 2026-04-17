@@ -3,6 +3,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 import uuid
+import time
 import google.generativeai as genai
 from PyPDF2 import PdfReader
 import io
@@ -62,22 +63,30 @@ user_path = f"user_data/{user_id}"
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
-if uploaded_file:
+iif uploaded_file:
     if st.button("🚀 開始上傳"):
         with st.spinner("上傳中..."):
             try:
+                # 1. 執行上傳
                 cloudinary.uploader.upload(
-                uploaded_file, 
-                resource_type = "raw", 
-                folder = user_path,
-                public_id = uploaded_file.name  # 直接改成這樣就好！
-            )
-                st.success("上傳成功！")
+                    uploaded_file, 
+                    resource_type = "raw", 
+                    folder = user_path,
+                    public_id = uploaded_file.name
+                )
+                
+                # 2. 顯示通知 (這時候畫面會跳出綠色框框)
+                st.success("✅ 上傳成功！通知與連結已生成。")
+                
+                # 3. 暫停兩秒 (讓你有時間看清楚上面的綠色框框)
+                time.sleep(2) 
+                
+                # 4. 重新啟動頁面 (兩秒後才重整，更新檔案櫃)
                 st.rerun() 
+
             except Exception as e:
                 st.error(f"上傳失敗: {e}")
 
-st.divider()
 
 # --- 第二部分：個人檔案清單與 AI 功能 ---
 st.subheader("📂 我的私有檔案清單")

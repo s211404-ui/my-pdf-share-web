@@ -23,8 +23,23 @@ cloudinary.config(
 )
 
 # 初始化 Gemini AI
+# --- 修正後的 AI 初始化 ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-ai_model = genai.GenerativeModel('gemini-pro')
+
+# 自動尋找可用的模型名稱 (預防 404 錯誤)
+try:
+    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    # 優先順序：1.5-flash -> 1.5-pro -> gemini-pro
+    if 'models/gemini-1.5-flash' in available_models:
+        model_name = 'gemini-1.5-flash'
+    elif 'models/gemini-1.5-pro' in available_models:
+        model_name = 'gemini-1.5-pro'
+    else:
+        model_name = 'gemini-pro'
+    
+    ai_model = genai.GenerativeModel(model_name)
+except Exception as e:
+    st.error(f"模型初始化失敗: {e}")
 
 # --- 標題與流程說明 ---
 st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)

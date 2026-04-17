@@ -63,7 +63,7 @@ user_path = f"user_data/{user_id}"
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
-iif uploaded_file:
+if uploaded_file:
     if st.button("🚀 開始上傳"):
         with st.spinner("上傳中..."):
             try:

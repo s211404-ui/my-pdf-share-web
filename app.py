@@ -130,7 +130,12 @@ try:
         st.write("目前尚無檔案。")
     else:
         # 這裡可以加一行小字，讓介面更專業
-        st.caption(f"📊 目前顯示最新的 {len(file_list)} 個項目 (上限 20 個)")
+        # 取得總檔案數量
+        total_count = len(all_files)
+        # 取得目前顯示的數量
+        display_count = len(file_list)
+
+        st.caption(f"📊 檔案櫃狀態：總共 {total_count} 個檔案，目前顯示最新 {display_count} 個項目 (上限 20 個)") 
 
         for file in file_list:
             display_name = file['public_id'].split('/')[-1]

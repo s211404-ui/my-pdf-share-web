@@ -8,6 +8,7 @@ import google.generativeai as genai
 from PyPDF2 import PdfReader
 import io
 import requests
+import cloudinary.uploader
 
 # 1. 網頁基礎設定
 st.set_page_config(page_title="柏宇的 AI PDF 空間", page_icon="🤖")
@@ -138,3 +139,37 @@ try:
                 
 except Exception as e:
     st.error(f"讀取失敗：{e}")
+
+with st.expander(f"📄 {display_name}"):
+    # --- 這裡是你原本有的：顯示網址、AI 按鈕、開啟檔案連結 ---
+    st.write(f"雲端路徑: {file['public_id']}")
+    st.markdown(f"[🔗 直接開啟檔案]({file_url})")
+    
+    # 這裡放 AI 分析按鈕... (略)
+    
+    st.markdown("---")  # 分隔線，區分功能區
+    
+    # 🔐 安全提示區：刪除檔案功能
+    st.subheader("⚠️ 危險區域")
+    
+    # 第一層保護：勾選框
+    confirm_delete = st.checkbox(f"我確定要刪除此檔案", key=f"check_{file['public_id']}")
+    
+    if confirm_delete:
+        # 第二層保護：按下按鈕才執行
+        if st.button(f"🔥 確定永久刪除", key=f"btn_{file['public_id']}", help="警告：刪除後無法復原"):
+            try:
+                # 呼叫 Cloudinary 刪除 API
+                result = cloudinary.uploader.destroy(
+                    file['public_id'], 
+                    resource_type="raw"
+                )
+                
+                if result.get("result") == "ok":
+                    st.success("✅ 檔案已成功刪除！")
+                    time.sleep(1.5)  # 暫停一下讓使用者看到成功訊息
+                    st.rerun()       # 重新整理網頁，更新檔案清單
+                else:
+                    st.error(f"❌ 刪除失敗：{result.get('result')}")
+            except Exception as e:
+                st.error(f"❌ 發生錯誤: {e}")

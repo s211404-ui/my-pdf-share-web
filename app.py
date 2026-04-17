@@ -119,11 +119,11 @@ try:
                 
                 # 1. AI 分析按鈕
                 if st.button(f"🤖 產生 AI 筆記", key=f"ai_{file['public_id']}"):
-                    with st.spinner("AI 正在深度閱讀中..."):
+                    with st.spinner("AI 正在覽閱中..."):
                         try:
                             pdf_text = get_pdf_text(file_url)
                             if len(pdf_text) < 10:
-                                st.error("通知：這份 PDF 看起來像是圖片，AI 讀不到文字！請上傳正確的PDF檔案。")
+                                st.error("注意：這份PDF檔案AI讀不到文字！請上傳正確的PDF檔案。請勿上傳JPG或PNG檔案")
                             else:
                                 prompt = f"你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行分析，並用繁體中文提供：\n1. 核心摘要 (300字內)\n2. 5 個關鍵知識點\n3. 適合學生的複習建議\n\n內容如下：\n{pdf_text[:10000]}"
                                 response = ai_model.generate_content(prompt)
@@ -138,10 +138,10 @@ try:
                 
                 # 3. 刪除功能 (放在同一個 expander 裡面)
                 st.markdown("---")
-                st.subheader("⚠️ 危險區域")
+                st.subheader("⚠️刪除檔案連結網站⚠️")
                 
                 # 安全鎖：勾選框
-                confirm_delete = st.checkbox(f"我確定要刪除此檔案", key=f"check_{file['public_id']}")
+                confirm_delete = st.checkbox(f"我確定要刪除此檔案連結", key=f"check_{file['public_id']}")
                 
                 if confirm_delete:
                     if st.button(f"🔥 確定永久刪除", key=f"btn_{file['public_id']}"):

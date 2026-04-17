@@ -45,13 +45,13 @@ with col3:
 st.divider() # 畫一條橫線，區隔說明區與操作區
 
 # --- 2. 接下來才是你原本的「操作邏輯」 ---
-
+st.info("為了區分您的檔案，請在下方設定一個存取碼。")
 
 if user_id:
     st.success(f"目前身分：{user_id}")
     # 下方接上傳檔案的程式碼...
 # --- 關鍵：用戶身份辨識 ---
-st.info("為了區分您的檔案，請在下方設定一個存取碼。")
+
 user_id = st.text_input("輸入您的專屬存取碼（建議使用學號或自訂英數組合）", type="password")
 
 if not user_id:

@@ -114,7 +114,7 @@ try:
                             pdf_text = get_pdf_text(file_url)
                             st.write(f"DEBUG: 偵測到的文字長度為 {len(pdf_text)}") # 加入這行
                             if len(pdf_text) < 10:
-                                st.error("警告：這份 PDF 看起來像是圖片，AI 讀不到文字！")
+                                st.error("通知：這份 PDF 看起來像是圖片，AI 讀不到文字！請上傳正確的PDF檔案，注意!!不可經過JPG、PNG轉換!!")
                             # 2. 餵給 AI (限制長度避免爆掉)
                             prompt = f"你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行分析，並用繁體中文提供：\n1. 核心摘要 (300字內)\n2. 5 個關鍵知識點\n3. 適合學生的複習建議\n\n內容如下：\n{pdf_text[:10000]}"
                             response = ai_model.generate_content(prompt)

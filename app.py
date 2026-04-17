@@ -92,8 +92,6 @@ if uploaded_file:
 # --- 第二部分：個人檔案清單與 AI 功能 ---
 st.subheader("📂 我的私有檔案清單")
 
-# --- 第二部分：個人檔案清單與 AI 功能 ---
-st.subheader("📂 我的私有檔案清單")
 
 def get_pdf_text(url):
     """從 URL 下載 PDF 並讀取文字"""

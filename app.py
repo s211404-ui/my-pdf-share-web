@@ -92,6 +92,9 @@ if uploaded_file:
 # --- 第二部分：個人檔案清單與 AI 功能 ---
 st.subheader("📂 我的私有檔案清單")
 
+# --- 第二部分：個人檔案清單與 AI 功能 ---
+st.subheader("📂 我的私有檔案清單")
+
 def get_pdf_text(url):
     """從 URL 下載 PDF 並讀取文字"""
     response = requests.get(url)
@@ -116,60 +119,47 @@ try:
             with st.expander(f"📄 {display_name}"):
                 st.code(file_url)
                 
-                # AI 分析按鈕
-                if st.button(f"🤖 產生 AI 筆記", key=file['public_id']):
+                # 1. AI 分析按鈕
+                if st.button(f"🤖 產生 AI 筆記", key=f"ai_{file['public_id']}"):
                     with st.spinner("AI 正在深度閱讀中..."):
                         try:
-                            # 1. 提取文字
                             pdf_text = get_pdf_text(file_url)
-                            st.write(f"DEBUG: 偵測到的文字長度為 {len(pdf_text)}") # 加入這行
                             if len(pdf_text) < 10:
-                                st.error("通知：這份 PDF 看起來像是圖片，AI 讀不到文字！請上傳正確的PDF檔案，注意!!不可經過JPG、PNG轉換!!")
-                            # 2. 餵給 AI (限制長度避免爆掉)
-                            prompt = f"你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行分析，並用繁體中文提供：\n1. 核心摘要 (300字內)\n2. 5 個關鍵知識點\n3. 適合學生的複習建議\n\n內容如下：\n{pdf_text[:10000]}"
-                            response = ai_model.generate_content(prompt)
-                            
-                            st.markdown("---")
-                            st.markdown("### 📝 AI 學習筆記內容")
-                            st.write(response.text)
+                                st.error("通知：這份 PDF 看起來像是圖片，AI 讀不到文字！請上傳正確的PDF檔案。")
+                            else:
+                                prompt = f"你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行分析，並用繁體中文提供：\n1. 核心摘要 (300字內)\n2. 5 個關鍵知識點\n3. 適合學生的複習建議\n\n內容如下：\n{pdf_text[:10000]}"
+                                response = ai_model.generate_content(prompt)
+                                st.markdown("---")
+                                st.markdown("### 📝 AI 學習筆記內容")
+                                st.write(response.text)
                         except Exception as ai_err:
                             st.error(f"AI 分析失敗: {ai_err}")
                 
+                # 2. 開啟檔案連結
                 st.markdown(f"[🔗 直接開啟檔案]({file_url})")
                 
+                # 3. 刪除功能 (放在同一個 expander 裡面)
+                st.markdown("---")
+                st.subheader("⚠️ 危險區域")
+                
+                # 安全鎖：勾選框
+                confirm_delete = st.checkbox(f"我確定要刪除此檔案", key=f"check_{file['public_id']}")
+                
+                if confirm_delete:
+                    if st.button(f"🔥 確定永久刪除", key=f"btn_{file['public_id']}"):
+                        try:
+                            result = cloudinary.uploader.destroy(
+                                file['public_id'], 
+                                resource_type="raw"
+                            )
+                            if result.get("result") == "ok":
+                                st.success("✅ 檔案已成功刪除！")
+                                time.sleep(1.5)
+                                st.rerun()
+                            else:
+                                st.error(f"❌ 刪除失敗：{result.get('result')}")
+                        except Exception as e:
+                            st.error(f"❌ 發生錯誤: {e}")
+
 except Exception as e:
     st.error(f"讀取失敗：{e}")
-
-with st.expander(f"📄 {display_name}"):
-    # --- 這裡是你原本有的：顯示網址、AI 按鈕、開啟檔案連結 ---
-    st.write(f"雲端路徑: {file['public_id']}")
-    st.markdown(f"[🔗 直接開啟檔案]({file_url})")
-    
-    # 這裡放 AI 分析按鈕... (略)
-    
-    st.markdown("---")  # 分隔線，區分功能區
-    
-    # 🔐 安全提示區：刪除檔案功能
-    st.subheader("⚠️ 危險區域")
-    
-    # 第一層保護：勾選框
-    confirm_delete = st.checkbox(f"我確定要刪除此檔案", key=f"check_{file['public_id']}")
-    
-    if confirm_delete:
-        # 第二層保護：按下按鈕才執行
-        if st.button(f"🔥 確定永久刪除", key=f"btn_{file['public_id']}", help="警告：刪除後無法復原"):
-            try:
-                # 呼叫 Cloudinary 刪除 API
-                result = cloudinary.uploader.destroy(
-                    file['public_id'], 
-                    resource_type="raw"
-                )
-                
-                if result.get("result") == "ok":
-                    st.success("✅ 檔案已成功刪除！")
-                    time.sleep(1.5)  # 暫停一下讓使用者看到成功訊息
-                    st.rerun()       # 重新整理網頁，更新檔案清單
-                else:
-                    st.error(f"❌ 刪除失敗：{result.get('result')}")
-            except Exception as e:
-                st.error(f"❌ 發生錯誤: {e}")

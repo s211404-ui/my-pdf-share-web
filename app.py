@@ -64,10 +64,6 @@ user_path = f"user_data/{user_id}"
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
-# --- 第一部分：上傳區 ---
-st.subheader("📤 上傳新檔案")
-uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
-
 # 初始化一個 session_state 來儲存剛上傳的連結
 if "last_upload_url" not in st.session_state:
     st.session_state.last_upload_url = None

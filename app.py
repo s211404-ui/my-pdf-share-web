@@ -45,8 +45,7 @@ with col3:
 st.divider() # 畫一條橫線，區隔說明區與操作區
 
 # --- 2. 接下來才是你原本的「操作邏輯」 ---
-# 例如：
-user_id = st.text_input("🔑 請輸入您的專屬存取碼", type="password")
+
 
 if user_id:
     st.success(f"目前身分：{user_id}")

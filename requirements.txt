@@ -1,4 +1,5 @@
 streamlit
 cloudinary
-google-generativeai
+google-generativeai>=0.4.0
 PyPDF2
+requests

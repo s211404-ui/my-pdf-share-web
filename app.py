@@ -67,11 +67,11 @@ if uploaded_file:
         with st.spinner("上傳中..."):
             try:
                 cloudinary.uploader.upload(
-                    uploaded_file, 
-                    resource_type = "raw", 
-                    folder = user_path,
-                    public_id = f"{uuid.uuid4()}_{uploaded_file.name}"
-                )
+                uploaded_file, 
+                resource_type = "raw", 
+                folder = user_path,
+                public_id = uploaded_file.name  # 直接改成這樣就好！
+            )
                 st.success("上傳成功！")
                 st.rerun() 
             except Exception as e:

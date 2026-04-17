@@ -64,29 +64,46 @@ user_path = f"user_data/{user_id}"
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
+# --- 第一部分：上傳區 ---
+st.subheader("📤 上傳新檔案")
+uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
+
+# 初始化一個 session_state 來儲存剛上傳的連結
+if "last_upload_url" not in st.session_state:
+    st.session_state.last_upload_url = None
+
 if uploaded_file:
     if st.button("🚀 開始上傳"):
         with st.spinner("上傳中..."):
             try:
-                # 1. 執行上傳
-                cloudinary.uploader.upload(
+                custom_name = uploaded_file.name
+                
+                # 執行上傳並取得回傳結果
+                upload_result = cloudinary.uploader.upload(
                     uploaded_file, 
                     resource_type = "raw", 
                     folder = user_path,
-                    public_id = uploaded_file.name
+                    public_id = custom_name
                 )
                 
-                # 2. 顯示通知 (這時候畫面會跳出綠色框框)
-                st.success("✅ 上傳成功！資料庫與連結已生成。")
+                # 將生成的連結存入 session_state
+                st.session_state.last_upload_url = upload_result['secure_url']
                 
-                # 3. 暫停兩秒 (讓你有時間看清楚上面的綠色框框)
-                time.sleep(2) 
+                st.success(f"✅ 上傳成功！")
+                # 這裡不使用 st.rerun()，或是延遲重整，以便讓連結顯示出來
+                # 如果你想讓連結留著，我們就不要在這裡馬上重整
                 
-                # 4. 重新啟動頁面 (兩秒後才重整，更新檔案櫃)
-                st.rerun() 
-
             except Exception as e:
                 st.error(f"上傳失敗: {e}")
+
+# ✨ 在按鈕下方直接呈現剛生成的連結
+if st.session_state.last_upload_url:
+    st.info("🔗 剛上傳的檔案連結：")
+    st.code(st.session_state.last_upload_url)
+    st.markdown(f"[點此直接開啟檔案]({st.session_state.last_upload_url})")
+    
+    if st.button("🔄 重新整理檔案櫃清單"):
+        st.rerun()
 
 
 # --- 第二部分：個人檔案清單與 AI 功能 ---

@@ -24,7 +24,7 @@ cloudinary.config(
 
 # 初始化 Gemini AI
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-ai_model = genai.GenerativeModel('gemini-1.5-flash')
+ai_model = genai.GenerativeModel('gemini-pro')
 
 # --- 標題與流程說明 ---
 st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)

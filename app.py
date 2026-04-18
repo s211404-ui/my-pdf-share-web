@@ -49,7 +49,7 @@ except Exception as e:
     st.error(f"AI 啟動失敗 (可能是 API 額度用盡)。錯誤訊息: {e}")
 
 # --- 標題與流程說明 ---
-st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>📄 柏宇的PDF轉網址工具</h1>", unsafe_allow_html=True)
 st.markdown("### 🚀 三步驟快速上手")
 col1, col2, col3 = st.columns(3)
 with col1: st.info("#### 1. 設定密碼\n你可以自訂自己的存取碼。")

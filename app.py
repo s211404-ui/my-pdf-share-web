@@ -27,14 +27,11 @@ cloudinary.config(
 # --- 修正後的 AI 初始化 (直接指定 8B 版本以獲得最高額度) ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
+# --- 在 app.py 中修改這一行 ---
 try:
-    # 直接指定使用 gemini-1.5-flash-8b
-    model_to_use = "gemini-1.5-flash-8b"
+    # 改用這個名稱，這是目前最通用的 Flash 模型 ID
+    model_to_use = "gemini-1.5-flash" 
     ai_model = genai.GenerativeModel(model_to_use)
-    
-    # 如果你想在畫面上確認是否切換成功，可以取消下面這行的註解：
-    # st.toast(f"已啟用高額度模型: {model_to_use}") 
-    
 except Exception as e:
     st.error(f"AI 初始化失敗: {e}")
 

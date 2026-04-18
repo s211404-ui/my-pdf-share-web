@@ -10,7 +10,7 @@ import io
 import requests
 
 # 1. 網頁基礎設定
-st.set_page_config(page_title="柏宇的 AI PDF 空間", page_icon="🤖")
+st.set_page_config(page_title="柏宇的PDF轉連結工具", page_icon="🤖")
 
 # 2. 隱藏介面元素
 st.markdown("<style>header {visibility: hidden;} #MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>", unsafe_allow_html=True)

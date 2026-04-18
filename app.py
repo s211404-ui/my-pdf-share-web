@@ -135,7 +135,7 @@ try:
     if not all_files:
         st.write("目前尚無檔案。")
     else:
-        show_all = st.toggle("顯示所有檔案 (取消 20 個的限制)", value=False)
+        show_all = st.toggle("顯示所有檔案", value=False)
         file_list = all_files if show_all else all_files[:20]
         
         st.caption(f"📊 狀態：總共 {len(all_files)} 個檔案，顯示最新 {len(file_list)} 個")

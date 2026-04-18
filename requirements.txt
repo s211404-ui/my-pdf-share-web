@@ -1,5 +1,6 @@
 streamlit
 cloudinary
-google-generativeai>=0.4.0
-PyPDF2
+google-generativeai>=0.8.3
+pdf2image
+Pillow
 requests

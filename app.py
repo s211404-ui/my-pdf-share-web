@@ -82,8 +82,8 @@ if uploaded_file:
                     public_id = custom_name
                 )
                 if uploaded_file:
-    # 1. 取得檔案大小並計算 MB
-    file_size_mb = uploaded_file.size / (1024 * 1024)
+                    # 1. 取得檔案大小並計算 MB
+                    file_size_mb = uploaded_file.size / (1024 * 1024)
     
     if file_size_mb > 10:
         st.error(f"❌ 檔案太大了！目前大小：{file_size_mb:.2f} MB")

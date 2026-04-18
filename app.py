@@ -81,21 +81,34 @@ if uploaded_file:
                     folder = user_path,
                     public_id = custom_name
                 )
-                # 取得檔案大小（單位：bytes）
-                file_size_mb = uploaded_file.size / (1024 * 1024)
+                if uploaded_file:
+    # 1. 取得檔案大小並計算 MB
+    file_size_mb = uploaded_file.size / (1024 * 1024)
     
-                if file_size_mb > 10:
-                    st.error(f"❌ 檔案太大了！目前大小：{file_size_mb:.2f} MB")
-                    st.info("💡 Cloudinary 免費版限制單一檔案需小於 10 MB。請先壓縮 PDF 或上傳較小的檔案。")
-                else:
-                    if st.button("🚀 開始上傳"):
-                    # 原本的上傳邏輯...
-                    # 將生成的連結存入 session_state
+    if file_size_mb > 10:
+        st.error(f"❌ 檔案太大了！目前大小：{file_size_mb:.2f} MB")
+        st.info("💡 Cloudinary 免費版限制單一檔案需小於 10 MB。請先壓縮 PDF 後再試。")
+    else:
+        # 2. 如果大小合格，才顯示上傳按鈕
+        if st.button("🚀 開始上傳"):
+            with st.spinner("上傳中..."):
+                try:
+                    # 3. 執行上傳動作
+                    upload_result = cloudinary.uploader.upload(
+                        uploaded_file, 
+                        resource_type = "raw", 
+                        folder = user_path,
+                        public_id = uploaded_file.name
+                    )
+                    
+                    # 4. 成功後將連結存入 session_state (注意這裡的縮排)
                     st.session_state.last_upload_url = upload_result['secure_url']
-                
-                    st.success(f"✅ 上傳成功！")
-                # 這裡不使用 st.rerun()，或是延遲重整，以便讓連結顯示出來
-                # 如果你想讓連結留著，我們就不要在這裡馬上重整
+                    st.success("✅ 上傳成功！連結已生成在下方。")
+                    
+                    # 💡 這裡我們不寫 st.rerun()，這樣連結才會停留在畫面上
+                    
+                except Exception as e:
+                    st.error(f"上傳失敗: {e}")
                 
             except Exception as e:
                 st.error(f"上傳失敗: {e}")

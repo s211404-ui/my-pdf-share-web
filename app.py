@@ -61,7 +61,7 @@ if not user_id:
 
 user_path = f"user_data/{user_id}"
 
-# --- 第一部分：上傳區 ---
+# --- 第一部分：上傳區 (修正版：解決連結無效/無法預覽問題) ---
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
@@ -75,23 +75,46 @@ if uploaded_file:
         st.info("💡 Cloudinary 免費版限制單一檔案需小於 10 MB。")
     else:
         if st.button("🚀 開始上傳"):
-            with st.spinner("檔案傳送中..."):
+            with st.spinner("正在生成雲端網站連結..."):
                 try:
+                    # ✨ 修正點 1：確保 public_id 包含 .pdf 擴展名，這對瀏覽器預覽至關重要
+                    file_name = uploaded_file.name
+                    if not file_name.lower().endswith('.pdf'):
+                        file_name += ".pdf"
+
                     upload_result = cloudinary.uploader.upload(
                         uploaded_file, 
-                        resource_type = "raw", 
+                        resource_type = "raw",  # 保持 raw 以節省 Cloudinary 額度
                         folder = user_path,
-                        public_id = uploaded_file.name
+                        public_id = file_name
                     )
+                    
+                    # 取得原始連結
                     st.session_state.last_upload_url = upload_result['secure_url']
-                    st.success("✅ 上傳成功！連結已生成。")
+                    st.success("✅ 網站連結已成功生成！")
                 except Exception as e:
                     st.error(f"上傳過程發生錯誤: {e}")
 
 if st.session_state.last_upload_url:
-    st.info("🔗 剛上傳的檔案連結：")
-    st.code(st.session_state.last_upload_url)
-    st.markdown(f"[點此在新分頁開啟檔案]({st.session_state.last_upload_url})")
+    raw_url = st.session_state.last_upload_url
+    
+    # ✨ 修正點 2：建立「網頁預覽版」連結
+    # 使用 Google Docs Viewer 包裝，這樣點開就會像一個真正的 PDF 閱讀網站
+    web_preview_url = f"https://docs.google.com/viewer?url={raw_url}&embedded=true"
+    
+    st.markdown("---")
+    st.info("🔗 您的 PDF 專屬網站連結：")
+    
+    # 顯示原始網址 (方便複製)
+    st.code(raw_url)
+    
+    # 提供兩個選項：一個直接開啟，一個網頁預覽
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f'<a href="{web_preview_url}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer; background-color:#4CAF50; color:white; padding:10px; border:none; border-radius:5px;">🌐 以網頁模式開啟</button></a>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<a href="{raw_url}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer; background-color:#2196F3; color:white; padding:10px; border:none; border-radius:5px;">📥 直接下載檔案</button></a>', unsafe_allow_html=True)
+
     if st.button("🔄 更新下方檔案櫃清單"):
         st.rerun()
 

@@ -64,36 +64,24 @@ user_path = f"user_data/{user_id}"
 st.subheader("📤 上傳新檔案")
 uploaded_file = st.file_uploader("選擇 PDF 檔案", type=["pdf"])
 
-# 初始化一個 session_state 來儲存剛上傳的連結
+# 初始化一個 session_state 來儲存剛上傳的連結 (如果還不存在的話)
 if "last_upload_url" not in st.session_state:
     st.session_state.last_upload_url = None
 
 if uploaded_file:
-    if st.button("🚀 開始上傳"):
-        with st.spinner("上傳中..."):
-            try:
-                custom_name = uploaded_file.name
-                
-                # 執行上傳並取得回傳結果
-                upload_result = cloudinary.uploader.upload(
-                    uploaded_file, 
-                    resource_type = "raw", 
-                    folder = user_path,
-                    public_id = custom_name
-                )
-                if uploaded_file:
-                    # 1. 取得檔案大小並計算 MB
-                    file_size_mb = uploaded_file.size / (1024 * 1024)
+    # 1. 取得檔案大小並計算 MB
+    file_size_mb = uploaded_file.size / (1024 * 1024)
     
+    # 2. 檢查大小是否超過 Cloudinary 的 10MB 限制
     if file_size_mb > 10:
         st.error(f"❌ 檔案太大了！目前大小：{file_size_mb:.2f} MB")
         st.info("💡 Cloudinary 免費版限制單一檔案需小於 10 MB。請先壓縮 PDF 後再試。")
     else:
-        # 2. 如果大小合格，才顯示上傳按鈕
+        # 3. 如果大小合格，才顯示「開始上傳」按鈕
         if st.button("🚀 開始上傳"):
-            with st.spinner("上傳中..."):
+            with st.spinner("檔案傳送中，請稍候..."):
                 try:
-                    # 3. 執行上傳動作
+                    # 執行上傳
                     upload_result = cloudinary.uploader.upload(
                         uploaded_file, 
                         resource_type = "raw", 
@@ -101,27 +89,23 @@ if uploaded_file:
                         public_id = uploaded_file.name
                     )
                     
-                    # 4. 成功後將連結存入 session_state (注意這裡的縮排)
+                    # 4. 成功後將連結存入 session_state
                     st.session_state.last_upload_url = upload_result['secure_url']
                     st.success("✅ 上傳成功！連結已生成在下方。")
                     
-                    # 💡 這裡我們不寫 st.rerun()，這樣連結才會停留在畫面上
-                    
                 except Exception as e:
-                    st.error(f"上傳失敗: {e}")
-                
-            except Exception as e:
-                st.error(f"上傳失敗: {e}")
+                    st.error(f"上傳過程發生錯誤: {e}")
 
-# ✨ 在按鈕下方直接呈現剛生成的連結
+# --- 顯示區：在按鈕下方呈現剛生成的連結 ---
 if st.session_state.last_upload_url:
-    st.info("🔗 剛上傳的檔案連結：")
+    st.markdown("---")  # 畫一條分隔線
+    st.info("🔗 剛上傳的檔案連結 (可直接複製)：")
     st.code(st.session_state.last_upload_url)
-    st.markdown(f"[點此直接開啟檔案]({st.session_state.last_upload_url})")
+    st.markdown(f"[點此在新分頁開啟檔案]({st.session_state.last_upload_url})")
     
-    if st.button("🔄 重新整理檔案櫃清單"):
+    # 提供一個按鈕讓使用者手動重整（更新下方的檔案櫃）
+    if st.button("🔄 更新下方檔案櫃清單"):
         st.rerun()
-
 
 # --- 第二部分：個人檔案清單與 AI 功能 ---
 st.subheader("📂 我的私有檔案清單")

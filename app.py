@@ -120,22 +120,32 @@ try:
     # 1. 向 Cloudinary 抓取清單
     resources = cloudinary.api.resources(type="upload", resource_type="raw", prefix=f"{user_path}/")
     
-    # 2. 先抓出所有檔案
+    # 2. 先抓出「所有」檔案
     all_files = resources.get("resources", [])
     
-    # 3. ✨ 關鍵修改：只保留前 20 個檔案
-    file_list = all_files[:20] 
-    
-    if not file_list:
+    if not all_files:
         st.write("目前尚無檔案。")
     else:
-        # 這裡可以加一行小字，讓介面更專業
-        # 取得總檔案數量
-        total_count = len(all_files)
-        # 取得目前顯示的數量
-        display_count = len(file_list)
+        # --- ✨ 關鍵修改：新增切換開關 ---
+        # value=False 代表預設是關閉的（只顯示20個）
+        show_all = st.toggle("顯示所有檔案 (取消 20 個的限制)", value=False)
+        
+        # 3. 根據開關決定 file_list 的內容
+        if show_all:
+            file_list = all_files
+            status_text = f"📊 正在顯示完整清單（共 {len(all_files)} 個檔案）"
+        else:
+            file_list = all_files[:20]
+            status_text = f"📊 檔案櫃狀態：總共 {len(all_files)} 個檔案，目前顯示最新 {len(file_list)} 個項目"
+            
+        # 顯示狀態文字
+        st.caption(status_text)
+        st.divider() # 加一條線讓介面更乾淨
 
-        st.caption(f"📊 檔案櫃狀態：總共 {total_count} 個檔案，目前顯示最新 {display_count} 個項目 (上限 20 個)") 
+        # 4. 接下來就是你原本的 for 迴圈了
+        for file in file_list:
+            display_name = file['public_id'].split('/')[-1]
+            # ... 後續程式碼保持不變 ...
 
         for file in file_list:
             display_name = file['public_id'].split('/')[-1]

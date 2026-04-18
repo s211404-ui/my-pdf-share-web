@@ -24,17 +24,22 @@ cloudinary.config(
   secure = True
 )
 
-# --- 修正後的 AI 初始化 (直接指定 8B 版本以獲得最高額度) ---
+# --- 修正後的 AI 初始化 (自動挑選可用模型) ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- 在 app.py 中修改這一行 ---
 try:
-    # 改用這個名稱，這是目前最通用的 Flash 模型 ID
-    model_to_use = "gemini-1.5-flash" 
+    # 讓程式自己去找現在這把 Key 到底能用哪個 Flash 模型
+    model_list = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    
+    # 優先找名字裡有 "flash" 的
+    model_to_use = next((m for m in model_list if 'flash' in m), "gemini-1.5-flash")
+    
     ai_model = genai.GenerativeModel(model_to_use)
+    # st.toast(f"正在使用模型: {model_to_use}")
+    
 except Exception as e:
-    st.error(f"AI 初始化失敗: {e}")
-
+    # 如果連 list_models 都失敗，代表 API Key 真的有問題
+    st.error(f"AI 啟動失敗，請檢查 API Key 是否正確。錯誤訊息: {e}")
 # --- 標題與流程說明 ---
 st.markdown("<h1 style='text-align: center;'>📄 柏宇的 AI PDF 學習空間</h1>", unsafe_allow_html=True)
 st.markdown("### 🚀 三步驟快速上手")

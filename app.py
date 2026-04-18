@@ -12,7 +12,7 @@ import requests
 # 1. 網頁基礎設定 (加強關鍵字)
 st.set_page_config(
     page_title="柏宇的PDF轉網址工具| 免費一鍵生成AI摘要工具", 
-    page_icon="🤖",
+    page_icon="💡",
     layout="centered"
 )
 

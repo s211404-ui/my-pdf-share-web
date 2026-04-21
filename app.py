@@ -154,22 +154,53 @@ try:
                 st.code(file_url)
                 
                 # AI 分析
+                # --- 替換開始：優化後的 AI 分析區塊 ---
                 if st.button(f"🤖 產生 AI 筆記", key=f"ai_{file['public_id']}"):
                     if ai_model is None:
-                        st.error("AI 模型未啟動，請檢查 API 額度。")
+                        st.error("❌ AI 模型未啟動，請檢查 API 額度或 Secrets 設定。")
                     else:
-                        with st.spinner("AI 正在分析內容..."):
+                        # 建立一個動態顯示狀態的區塊
+                        status_msg = st.empty() 
+                        with st.spinner("AI 正在思考中..."):
                             try:
+                                # 狀態 1：下載並讀取 PDF
+                                status_msg.info("⏳ 正在從雲端讀取 PDF 內容...")
                                 pdf_text = get_pdf_text(file_url)
+                                
                                 if len(pdf_text) < 10:
-                                    st.error("讀不到文字！請確保 PDF 非純圖片。")
+                                    status_msg.empty()
+                                    st.error("❌ 讀不到文字！這份 PDF 可能是掃描圖片，請上傳電子檔 PDF。")
                                 else:
-                                    prompt = f"請分析以下內容並用繁體中文提供摘要與建議：\n\n{pdf_text[:8000]}"
+                                    # 狀態 2：字數檢查與傳送給 AI
+                                    char_count = len(pdf_text)
+                                    status_msg.info(f"⏳ 文字讀取成功 (共 {char_count} 字)，AI 正在生成筆記...")
+                                    
+                                    # 限制字數以加快回應速度
+                                    safe_text = pdf_text[:8000] 
+                                    
+                                    prompt = f"""你是一個專業的讀書筆記專家。請針對以下 PDF 內容進行深度分析，並以繁體中文提供：
+                                    1. 核心重點摘要 (300字內)
+                                    2. 5 個關鍵知識點 (條列式)
+                                    3. 針對內容的後續複習建議
+                                    
+                                    內容如下：
+                                    {safe_text}
+                                    """
+                                    
+                                    # 真正呼叫 AI
                                     response = ai_model.generate_content(prompt)
+                                    
+                                    # 完成後清除狀態並顯示結果
+                                    status_msg.empty()
+                                    st.success("✅ AI 筆記生成完畢！")
+                                    st.markdown("---")
                                     st.markdown("### 📝 AI 學習筆記")
                                     st.write(response.text)
+                                    
                             except Exception as ai_err:
-                                st.error(f"AI 分析失敗: {ai_err}")
+                                status_msg.empty()
+                                st.error(f"❌ AI 分析失敗: {ai_err}")
+                # --- 替換結束 ---
                 
                 st.markdown(f"[🔗 直接開啟檔案]({file_url})")
                 st.markdown("---")

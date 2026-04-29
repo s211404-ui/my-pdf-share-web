@@ -53,7 +53,7 @@ st.markdown("<h1 style='text-align: center;'>📄 柏宇的PDF轉網址工具</h
 st.markdown("### 🚀 三步驟快速上手")
 col1, col2, col3 = st.columns(3)
 with col1: st.info("#### 1. 設定密碼\n設定自己的存取碼以獲得自我空間。")
-with col2: st.info("#### 2. 上傳 PDF\n自動雲端儲存後將製成網站。")
+with col2: st.info("#### 2. 上傳 PDF\n自動雲端儲存並製成網站。")
 with col3: st.info("#### 3. AI 筆記\nPDF可一鍵產生重點摘要。")
 st.divider()
 

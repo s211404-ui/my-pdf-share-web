@@ -8,6 +8,8 @@ import google.generativeai as genai
 from PyPDF2 import PdfReader
 import io
 import requests
+import json
+from datetime import datetime
 
 # 1. 網頁基礎設定 (加強關鍵字)
 st.set_page_config(
@@ -104,7 +106,7 @@ if st.session_state.last_upload_url:
     
     # ✨ 修正點 2：建立「網頁預覽版」連結
     # 使用 Google Docs Viewer 包裝，這樣點開就會像一個真正的 PDF 閱讀網站
-    web_preview_url = f"https://docs.google.com/viewer?url={raw_url}&embedded=true"
+    viewer_link = f"?view={raw_url}"
     
     st.markdown("---")
     st.info("🔗 您的 PDF 專屬網站連結：")
@@ -115,7 +117,7 @@ if st.session_state.last_upload_url:
     # 提供兩個選項：一個直接開啟，一個網頁預覽
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f'<a href="{web_preview_url}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer; background-color:#4CAF50; color:white; padding:10px; border:none; border-radius:5px;">🌐 以網頁模式開啟</button></a>', unsafe_allow_html=True)
+        st.markdown(f'<a href="{viewer_link}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer; background-color:#4CAF50; color:white; padding:10px; border:none; border-radius:5px;">🌐 以網頁模式開啟</button></a>', unsafe_allow_html=True)
     with col2:
         st.markdown(f'<a href="{raw_url}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer; background-color:#2196F3; color:white; padding:10px; border:none; border-radius:5px;">📥 直接下載檔案</button></a>', unsafe_allow_html=True)
 
@@ -123,6 +125,54 @@ if st.session_state.last_upload_url:
         st.rerun()
 
 # --- 第二部分：個人檔案清單與 AI 功能 ---
+# --- PDF Viewer 模式（紀錄瀏覽） ---
+query_params = st.query_params
+
+if "view" in query_params:
+    pdf_url = query_params["view"]
+
+    # ===== 瀏覽紀錄 =====
+    log_data = {
+        "time": str(datetime.now()),
+        "pdf_url": pdf_url,
+        "user_agent": st.context.headers.get("User-Agent", "Unknown")
+    }
+
+    try:
+        with open("view_logs.json", "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_data, ensure_ascii=False) + "\n")
+    except Exception as e:
+        st.error(f"紀錄失敗: {e}")
+
+    # ===== 計算瀏覽次數 =====
+    view_count = 0
+
+    try:
+        with open("view_logs.json", "r", encoding="utf-8") as f:
+            logs = f.readlines()
+
+        for line in logs:
+            log = json.loads(line)
+            if log["pdf_url"] == pdf_url:
+                view_count += 1
+
+    except:
+        pass
+
+    st.title("📄 PDF 線上閱讀")
+
+    st.info(f"👁️ 瀏覽次數：{view_count}")
+
+    # Google Viewer 嵌入
+    viewer_url = f"https://docs.google.com/viewer?url={pdf_url}&embedded=true"
+
+    st.components.v1.iframe(
+        viewer_url,
+        height=900,
+        scrolling=True
+    )
+
+    st.stop()
 st.subheader("📂 我的私有檔案清單")
 
 def get_pdf_text(url):

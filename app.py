@@ -266,3 +266,30 @@ try:
 
 except Exception as e:
     st.error(f"讀取清單失敗：{e}")
+
+# --- 後台瀏覽紀錄 ---
+st.subheader("📊 PDF 瀏覽紀錄")
+
+if st.toggle("查看瀏覽紀錄"):
+
+    try:
+        with open("view_logs.json", "r", encoding="utf-8") as f:
+            logs = f.readlines()
+
+        logs = logs[::-1]  # 最新的在前面
+
+        for line in logs[:50]:
+            log = json.loads(line)
+
+            st.write(f"""
+🕒 時間：{log['time']}
+
+📄 PDF：{log['pdf_url']}
+
+💻 裝置：{log['user_agent']}
+
+---
+""")
+
+    except:
+        st.info("目前尚無瀏覽紀錄")
